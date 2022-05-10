@@ -1,0 +1,74 @@
+<mujoco model="force_control">
+     <compiler angle="radian" meshdir="./meshes/" />
+    <size njmax="500" nconmax="100" />
+    <option gravity='0 0 -9.806' iterations='50' solver='Newton' timestep='0.002'/>
+
+    <default>
+        <geom contype="1" conaffinity="1" friction="0.6 0.3 0.3" rgba="0.5 0.6 0.7 1" margin="0.001" group="0"/>
+
+        <light castshadow="false" diffuse="1 1 1"/>
+        <motor ctrlrange="-0 200" ctrllimited="true"/>
+        <camera fovy="60"/>
+        <joint damping="0.01" armature="0.01"/>
+
+    </default>
+    <asset>
+        <mesh name="base" file="base.STL"/>
+        <mesh name="link1" file="link1.STL"/>
+    </asset>
+
+    <asset>
+        <texture type="skybox" builtin="gradient" rgb1="0.3 0.5 0.7" rgb2="0 0 0" width="512" height="512"/>
+        <texture name="plane" type="2d" builtin="flat" rgb1=".2 .3 .4" rgb2=".1 0.15 0.2" width="512" height="512" mark="cross" markrgb="0 0 0"/>
+        <material name="plane" reflectance="0.0" texture="plane" texrepeat="3 3" texuniform="true"/>
+    </asset>
+
+     <visual>
+        <map force="0.1" zfar="30"/>
+        <rgba haze="0.15 0.25 0.35 1"/>
+        <quality shadowsize="2048"/>
+        <global offwidth="800" offheight="800"/>
+    </visual>
+
+    
+
+    <worldbody>
+        <light directional="true" diffuse=".8 .8 .8" pos="0 0 10" dir="0 0 -10"/>
+        <camera name="track" mode="trackcom" pos="0 -1.3 1.6" xyaxes="1 0 0 0 0.707 0.707"/>
+        <geom name='floor' type='plane' conaffinity='1' condim='3' contype='1' rgba="0.5 0.9 0.9 0.1" material='plane' pos='0 0 0' size='0 0 1'/>
+        <body name="base" pos="0. 0 0" quat="0 0 0 0">
+            <inertial pos="0.02 0 0" quat="0.5 0.5 0.5 0.5" mass="0.05" diaginertia="1.0595e-07 1.0595e-07 2.4544e-09"/>
+            <!-- <joint name="fixed"/> -->
+            <geom name='base' type="mesh" contype="0" conaffinity="0" group="1" rgba="1 1 1 1" mesh="base"/>
+            <geom type="mesh" rgba="1 1 1 1" mesh="base"/>
+
+            <body name="link1" pos="0.014 0 0.062" quat="0.499998 0.5 -0.5 0.500002">
+                <inertial pos="0.02 0 0" quat="0.5 0.5 0.5 0.5" mass="0.1" diaginertia="1.0595e-07 1.0595e-07 2.4544e-09"/>
+                <joint name="joint1" pos="0 0 0" axis="1 0 0" type="slide"/>
+                <geom name='link1' type="mesh" contype="0" conaffinity="0" group="1" rgba="1 1 1 1" mesh="link1"/>
+                <geom type="mesh" rgba="1 1 1 1" mesh="link1"/>
+                <site name="force_sensor_site" pos="0 0 0"/>
+            </body>
+        </body>
+    </worldbody>
+
+    <contact>
+        <exclude name="exclude_base_link1" body1="base" body2="link1"/>
+        <pair name="pair_base_link1" geom1="floor" geom2="link1"/>
+    </contact>
+
+    <actuator>       
+        <motor name="joint1_motor"   gear="1" joint="joint1"/>
+    </actuator>
+
+    <sensor>
+        <jointpos name="joint1_pos"    joint="joint1"/>
+        <jointvel name="joint1_vel"    joint="joint1"/>
+
+        <!-- <actuatorpos name ="actuator_pos"   actuator="joint1_motor" > -->
+        <!-- <actuatorvel name ="actuator_vel"   actuator="joint1_motor" > -->
+        <!-- <actuatorfrc name ="actuator_force" actuator="joint1_motor" > -->
+        <touch name="force_sensor_3axis" site="force_sensor_site"/>
+    </sensor>
+
+</mujoco>
